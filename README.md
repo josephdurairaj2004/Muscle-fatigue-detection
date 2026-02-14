@@ -1,209 +1,133 @@
-EMG-Based Muscle Fatigue Classification using 1D CNN
-📌 Problem Statement
+EMG-Based Muscle Fatigue Classification Using Deep Learning
+Overview
 
-Muscle fatigue is a critical factor in:
+Muscle fatigue detection is a critical component in modern biomedical engineering applications, including rehabilitation monitoring, injury prevention, ergonomic assessment, and human–machine interaction. Surface electromyography (sEMG) provides a non-invasive mechanism to measure muscle activity; however, accurate fatigue classification from raw EMG signals remains challenging due to signal variability, noise, inter-subject differences, and subjective labeling.
 
-Sports injury prevention
+This project presents a complete deep learning pipeline for automatic classification of muscle fatigue levels from raw multichannel EMG signals using a one-dimensional convolutional neural network (1D-CNN). The system processes raw EMG data, performs signal preprocessing and transition filtering, and learns fatigue-related temporal patterns without reliance on handcrafted features.
 
-Rehabilitation monitoring
+Problem Statement
 
-Workplace ergonomics
+Traditional EMG fatigue detection methods rely heavily on frequency-domain features such as median frequency and mean power frequency. These approaches often require manual feature engineering and struggle to generalize across subjects and movement conditions.
 
-Human–robot interaction
+The objective of this project is to develop an automated, data-driven fatigue classification system capable of:
 
-Surface Electromyography (sEMG) provides a non-invasive way to monitor muscle activity, but detecting fatigue reliably is challenging because:
+Learning discriminative fatigue patterns directly from raw EMG signals
 
-EMG signals are highly noisy and non-stationary
+Handling noisy and non-stationary biomedical time-series data
 
-Fatigue progression varies between individuals
+Providing robust classification across multiple participants and movement trials
 
-Traditional methods rely on handcrafted features and thresholds
+The system aims to classify muscle fatigue into three levels:
 
-Recent research shows that deep learning can automatically learn fatigue patterns, but:
+Non-Fatigue
 
-Requires proper signal preprocessing
+Moderate Fatigue
 
-Needs robust labeling strategies
+High Fatigue
 
-Suffers from dataset limitations
+Dataset Description
 
-This project addresses these challenges by building a deep learning-based fatigue detection system using a real biomedical dataset.
+The model is trained and evaluated on a publicly available biomedical dataset containing surface electromyography recordings collected from healthy adult participants performing dynamic upper-limb movements.
 
-The work is based on the publicly available dataset:
-
-"A Comprehensive Dataset of Surface Electromyography and Self-Perceived Fatigue Levels for Muscle Fatigue Analysis" 
-
-2b4e4a1e-1fe6-4f00-8639-a99e44c…
-
-This dataset contains:
+Key dataset characteristics:
 
 13 participants
 
-13+ hours of sEMG recordings
+Multichannel EMG recordings (4 muscles per arm)
 
-Dynamic upper-limb movements
+Sampling frequency: 1259 Hz
 
-Self-perceived fatigue labels (3 levels)
+Self-reported fatigue labels recorded at 50 Hz
 
-🎯 Project Objective
+Multiple movement protocols and exercise sessions
 
-The goal of this project is to:
+This dataset provides realistic conditions for fatigue classification, including inter-subject variability and subjective labeling uncertainty.
 
-Develop a robust deep learning system capable of automatically classifying muscle fatigue levels from raw multichannel EMG signals.
+Methodology
+Signal Preprocessing
 
-Specifically, the system predicts:
+Raw EMG signals undergo the following preprocessing steps:
 
-Class 0: Non-Fatigue
+Band-pass filtering between 20 Hz and 450 Hz to remove motion artifacts and noise
 
-Class 1: Medium Fatigue
+Segmentation into fixed-length time windows of four seconds
 
-Class 2: High Fatigue
+Fifty percent overlap between consecutive windows
 
-⚙️ Methodology
-1️⃣ Signal Preprocessing
+Removal of transition regions near fatigue label changes to reduce label noise
 
-Steps performed:
+Per-window normalization using z-score standardization
 
-Band-pass filtering (20–450 Hz)
+These preprocessing steps ensure high-quality input data while preserving temporal characteristics relevant to fatigue progression.
 
-Window segmentation (4-second windows)
+Model Architecture
 
-50% overlap sliding windows
+A lightweight one-dimensional convolutional neural network is designed to extract temporal features from multichannel EMG signals.
 
-Transition region removal to avoid noisy labels
+Feature Extraction Layers
 
-Z-score normalization per window
+Conv1D (4 input channels → 32 filters, kernel size 7)
 
-The 4-second window length aligns with typical contraction cycles and is widely used in fatigue analysis. 
+Conv1D (32 → 64 filters, kernel size 5)
 
-2b4e4a1e-1fe6-4f00-8639-a99e44c…
+Conv1D (64 → 128 filters, kernel size 3)
 
-2️⃣ Deep Learning Model
+Batch normalization and ReLU activation after each convolution
 
-A 1D Convolutional Neural Network was designed to automatically learn temporal fatigue patterns.
+Max pooling to reduce temporal dimensionality
 
-Architecture:
+Feature Aggregation
 
-Feature extractor:
+Adaptive average pooling to produce a fixed-length representation
 
-Conv1D (4 → 32)
+Flattening into a 128-dimensional feature vector
 
-Conv1D (32 → 64)
-
-Conv1D (64 → 128)
-
-BatchNorm + ReLU + MaxPooling
-
-Feature aggregation:
-
-Adaptive Average Pooling
-
-Flatten layer (128-dim feature vector)
-
-Classifier:
+Classification Head
 
 Fully connected layer (128 → 64)
 
-Dropout regularization
+ReLU activation and dropout regularization
 
-Output layer (3 classes)
+Output layer (64 → 3 classes)
 
-Total trainable parameters:
+The architecture contains approximately forty-five thousand trainable parameters, making it computationally efficient and suitable for real-time deployment.
 
-≈ 45K parameters
+Training Strategy
 
-This makes the model:
+The model training pipeline includes:
 
-Lightweight
+Stratified dataset splitting into training, validation, and testing sets
 
-Fast to train
+Hyperparameter optimization using grid search
 
-Suitable for real-time applications
+Learning rate scheduling based on validation performance
 
-3️⃣ Training Strategy
+Model checkpointing using best validation accuracy
 
-To ensure robustness:
+Hyperparameters tuned during training include learning rate, dropout rate, and batch size.
 
-Stratified train-validation-test split
+Results
 
-Hyperparameter grid search
+The trained model achieves strong performance on the fatigue classification task:
 
-Learning rate scheduling
+Test accuracy: approximately 78 percent
 
-Early model checkpointing
+Weighted F1 score: approximately 0.78
 
-Hyperparameters tuned:
+Balanced classification performance across fatigue levels
 
-Learning rate
+Considering the subjective nature of fatigue labels and inter-participant variability, this level of performance represents a reliable and competitive outcome for raw EMG classification.
 
-Dropout rate
+Key Contributions
 
-Batch size
+This project provides:
 
-📊 Results
-Best Performance Achieved
+A complete end-to-end pipeline for EMG fatigue analysis
 
-Test Accuracy:
+Robust preprocessing and transition filtering methodology
 
-⭐ ~78%
+A lightweight and effective deep learning architecture for time-series classification
 
-Weighted F1-Score:
+Reproducible experimental setup and evaluation workflow
 
-⭐ ~0.78
-
-This is strong performance for:
-
-Raw EMG classification
-
-Subject-independent fatigue detection
-
-Small biomedical dataset
-
-🧪 Key Observations
-What the model learned:
-
-✔ Fatigue progression patterns
-✔ Frequency and amplitude changes
-✔ Temporal muscle activation trends
-
-Major challenges:
-
-Label subjectivity
-
-Inter-subject variability
-
-Limited dataset size
-
-These are well-known challenges in EMG fatigue research. 
-
-2b4e4a1e-1fe6-4f00-8639-a99e44c…
-
-🚀 Contributions of This Project
-
-This work provides:
-
-🔬 Technical Contributions
-
-Complete EMG preprocessing pipeline
-
-Robust transition-aware window labeling
-
-Efficient 1D CNN architecture for fatigue detection
-
-Hyperparameter optimization framework
-
-🧠 Research Contributions
-
-Demonstrates feasibility of deep learning on perceived fatigue data
-
-Shows reliable classification using minimal features
-
-Provides reproducible experimental workflow
-
-💻 Practical Contributions
-
-Real-time capable fatigue detection system
-
-Lightweight deployable model
-
-Ready-to-use training and evaluation scripts
+The work demonstrates the feasibility of deep learning-based fatigue detection using real biomedical datasets.
