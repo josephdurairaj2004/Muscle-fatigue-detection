@@ -1,133 +1,110 @@
-EMG-Based Muscle Fatigue Classification Using Deep Learning
-Overview
+# EMG-Based Muscle Fatigue Classification Using Deep Learning
 
 Muscle fatigue detection is a critical component in modern biomedical engineering applications, including rehabilitation monitoring, injury prevention, ergonomic assessment, and human–machine interaction. Surface electromyography (sEMG) provides a non-invasive mechanism to measure muscle activity; however, accurate fatigue classification from raw EMG signals remains challenging due to signal variability, noise, inter-subject differences, and subjective labeling.
 
-This project presents a complete deep learning pipeline for automatic classification of muscle fatigue levels from raw multichannel EMG signals using a one-dimensional convolutional neural network (1D-CNN). The system processes raw EMG data, performs signal preprocessing and transition filtering, and learns fatigue-related temporal patterns without reliance on handcrafted features.
+This project presents a complete deep learning pipeline for automatic classification of muscle fatigue levels from raw multichannel EMG signals using a one-dimensional convolutional neural network (1D-CNN).
 
-Problem Statement
+---
 
-Traditional EMG fatigue detection methods rely heavily on frequency-domain features such as median frequency and mean power frequency. These approaches often require manual feature engineering and struggle to generalize across subjects and movement conditions.
+## Problem Statement
 
-The objective of this project is to develop an automated, data-driven fatigue classification system capable of:
+Traditional EMG fatigue detection methods rely heavily on frequency-domain features such as median frequency and mean power frequency. These approaches require manual feature engineering and struggle to generalize across subjects and movement conditions.
 
-Learning discriminative fatigue patterns directly from raw EMG signals
+This project develops an automated, data-driven fatigue classification system capable of:
+- Learning discriminative fatigue patterns directly from raw EMG signals
+- Handling noisy and non-stationary biomedical time-series data
+- Providing robust classification across multiple participants and movement trials
 
-Handling noisy and non-stationary biomedical time-series data
+**Three fatigue classes:**
+| Class | Label |
+|-------|-------|
+| 0 | Non-Fatigue |
+| 1 | Moderate Fatigue |
+| 2 | High Fatigue |
 
-Providing robust classification across multiple participants and movement trials
+---
 
-The system aims to classify muscle fatigue into three levels:
+## Dataset
 
-Non-Fatigue
+Surface EMG recordings from healthy adult participants performing dynamic upper-limb movements.
 
-Moderate Fatigue
+| Property | Value |
+|----------|-------|
+| Participants | 13 |
+| Muscles recorded | 4 per arm (multichannel) |
+| Sampling frequency | 1259 Hz |
+| Label frequency | 50 Hz |
+| Fatigue classes | 3 (Non, Moderate, High) |
 
-High Fatigue
+**Dataset Source:** [EMG Muscle Fatigue Dataset — Zenodo](https://zenodo.org/records/14182446)
 
-Dataset Description
+---
 
-The model is trained and evaluated on a publicly available biomedical dataset containing surface electromyography recordings collected from healthy adult participants performing dynamic upper-limb movements.
+## Methodology
 
-Key dataset characteristics:
+### Signal Preprocessing
+- Band-pass filtering: 20 Hz – 450 Hz (removes motion artifacts and noise)
+- Segmentation into 4-second fixed-length windows
+- 50% overlap between consecutive windows
+- Removal of transition regions near fatigue label changes to reduce label noise
+- Per-window z-score normalization
 
-13 participants
+### Model Architecture
 
-Multichannel EMG recordings (4 muscles per arm)
+A lightweight 1D-CNN designed to extract temporal features from multichannel EMG signals.
 
-Sampling frequency: 1259 Hz
+| Layer | Details |
+|-------|---------|
+| Conv1D | 4 → 32 filters, kernel size 7 |
+| Conv1D | 32 → 64 filters, kernel size 5 |
+| Conv1D | 64 → 128 filters, kernel size 3 |
+| Pooling | Max pooling + Adaptive average pooling |
+| FC | 128 → 64, ReLU, Dropout |
+| Output | 64 → 3 classes, Softmax |
 
-Self-reported fatigue labels recorded at 50 Hz
+Total trainable parameters: ~45,000
 
-Multiple movement protocols and exercise sessions
+![Architecture](architecture.png)
 
-This dataset provides realistic conditions for fatigue classification, including inter-subject variability and subjective labeling uncertainty.
+### Training Strategy
+- Stratified train/validation/test split
+- Hyperparameter optimization via grid search (learning rate, dropout, batch size)
+- Learning rate scheduling based on validation performance
+- Model checkpointing on best validation accuracy
 
-Methodology
-Signal Preprocessing
+---
 
-Raw EMG signals undergo the following preprocessing steps:
+## Results
 
-Band-pass filtering between 20 Hz and 450 Hz to remove motion artifacts and noise
+| Metric | Value |
+|--------|-------|
+| Test Accuracy | ~78% |
+| Weighted F1 Score | ~0.78 |
+| Classes | Balanced performance across all 3 |
 
-Segmentation into fixed-length time windows of four seconds
+> Note: Given the subjective nature of self-reported fatigue labels and inter-participant variability, 78% represents a strong and competitive result for raw EMG classification without handcrafted features.
 
-Fifty percent overlap between consecutive windows
+![Confusion Matrix](confusion_matrix.png)
 
-Removal of transition regions near fatigue label changes to reduce label noise
+---
 
-Per-window normalization using z-score standardization
+## How to Run
+```bash
+pip install -r requirements.txt
+python train.py
+```
 
-These preprocessing steps ensure high-quality input data while preserving temporal characteristics relevant to fatigue progression.
+---
 
-Model Architecture
+## Key Contributions
 
-A lightweight one-dimensional convolutional neural network is designed to extract temporal features from multichannel EMG signals.
+- Complete end-to-end pipeline for EMG fatigue analysis
+- Robust preprocessing with transition filtering to reduce label noise
+- Lightweight 1D-CNN (~45K parameters) suitable for real-time deployment
+- Reproducible experimental setup with stratified evaluation
 
-Feature Extraction Layers
+---
 
-Conv1D (4 input channels → 32 filters, kernel size 7)
+## Tech Stack
 
-Conv1D (32 → 64 filters, kernel size 5)
-
-Conv1D (64 → 128 filters, kernel size 3)
-
-Batch normalization and ReLU activation after each convolution
-
-Max pooling to reduce temporal dimensionality
-
-Feature Aggregation
-
-Adaptive average pooling to produce a fixed-length representation
-
-Flattening into a 128-dimensional feature vector
-
-Classification Head
-
-Fully connected layer (128 → 64)
-
-ReLU activation and dropout regularization
-
-Output layer (64 → 3 classes)
-
-The architecture contains approximately forty-five thousand trainable parameters, making it computationally efficient and suitable for real-time deployment.
-
-Training Strategy
-
-The model training pipeline includes:
-
-Stratified dataset splitting into training, validation, and testing sets
-
-Hyperparameter optimization using grid search
-
-Learning rate scheduling based on validation performance
-
-Model checkpointing using best validation accuracy
-
-Hyperparameters tuned during training include learning rate, dropout rate, and batch size.
-
-Results
-
-The trained model achieves strong performance on the fatigue classification task:
-
-Test accuracy: approximately 78 percent
-
-Weighted F1 score: approximately 0.78
-
-Balanced classification performance across fatigue levels
-
-Considering the subjective nature of fatigue labels and inter-participant variability, this level of performance represents a reliable and competitive outcome for raw EMG classification.
-
-Key Contributions
-
-This project provides:
-
-A complete end-to-end pipeline for EMG fatigue analysis
-
-Robust preprocessing and transition filtering methodology
-
-A lightweight and effective deep learning architecture for time-series classification
-
-Reproducible experimental setup and evaluation workflow
-
-The work demonstrates the feasibility of deep learning-based fatigue detection using real biomedical datasets.
+`Python` `PyTorch` `NumPy` `Pandas` `Scikit-learn` `Matplotlib`
